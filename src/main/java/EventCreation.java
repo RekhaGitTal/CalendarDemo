@@ -16,10 +16,7 @@ import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventAttendee;
-import com.google.api.services.calendar.model.EventDateTime;
-import com.google.api.services.calendar.model.EventReminder;
+import com.google.api.services.calendar.model.*;
 import com.google.api.services.calendar.model.Events.*;
 
 
@@ -49,7 +46,7 @@ public class EventCreation {
      * @return An authorized Credential object.
      * @throws IOException If the credentials.json file cannot be found.
      */
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+   private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
         InputStream in = EventCreation.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {
@@ -67,7 +64,7 @@ public class EventCreation {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    /*private static Credential getCredentials(NetHttpTransport HTTP_TRANSPORT) throws GeneralSecurityException, IOException {
+   /* private static Credential getCredentials(NetHttpTransport HTTP_TRANSPORT) throws GeneralSecurityException, IOException {
 
 
 
@@ -79,8 +76,8 @@ public class EventCreation {
 System.out.println(credential.getAccessToken());
 
         return credential;
-    }
-*/
+    }*/
+
     public static void main(String... args) throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -102,6 +99,13 @@ System.out.println(credential.getAccessToken());
                 .setTimeZone("America/Los_Angeles");
         event.setStart(start);
 
+        ConferenceData conferenceData = new ConferenceData();
+        CreateConferenceRequest createConferenceRequest = new CreateConferenceRequest();
+        ConferenceSolutionKey conferenceSolutionKey = new ConferenceSolutionKey();
+        conferenceSolutionKey.setType("hangoutsMeet");
+        createConferenceRequest.setRequestId("1");
+        createConferenceRequest.setConferenceSolutionKey(conferenceSolutionKey);
+        conferenceData.setCreateRequest(createConferenceRequest);
         DateTime endDateTime = new DateTime("2021-08-21T17:00:00-07:00");
         EventDateTime end = new EventDateTime()
                 .setDateTime(endDateTime)
@@ -110,6 +114,7 @@ System.out.println(credential.getAccessToken());
 
         String[] recurrence = new String[] {"RRULE:FREQ=DAILY;COUNT=2"};
         event.setRecurrence(Arrays.asList(recurrence));
+        event.setConferenceData(conferenceData);
 
         EventAttendee[] attendees = new EventAttendee[] {
                 new EventAttendee().setEmail("rekha.sharma@talentica.com"),
@@ -128,7 +133,7 @@ System.out.println(credential.getAccessToken());
 
         String calendarId = "primary";
         System.out.println(event.getAttendees());
-        event = service.events().insert(calendarId, event).setSendNotifications(true).execute();
+        event = service.events().insert(calendarId, event).setConferenceDataVersion(1).setSendNotifications(true).execute();
        System.out.println("Event created:" + event.getHtmlLink());
     }
 }
